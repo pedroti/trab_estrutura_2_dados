@@ -16,6 +16,7 @@ namespace BuscaBinariaArquivo
             string currentIsoCode = string.Empty;
             string newIsoCode = string.Empty;
             int dataFileSize = 0;
+            string dataFilePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "DataFile.csv");
             File.Delete(Path.Combine(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIDFile.txt")));
             File.Delete(Path.Combine(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIsoCodeFile.txt")));
 
@@ -26,7 +27,7 @@ namespace BuscaBinariaArquivo
                 File.Delete(Path.Combine(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIsoCodeFile.txt")));
 
                 //2.1 e 2.2
-                using (StreamReader sr = new StreamReader(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "DataFile.csv")))
+                using (StreamReader sr = new StreamReader(dataFilePath))
                 using (StreamWriter sw = new StreamWriter(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIDFile.txt")))
                 using (StreamWriter sw2 = new StreamWriter(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIsoCodeFile.txt")))
                 {
@@ -74,22 +75,46 @@ namespace BuscaBinariaArquivo
                 }
             }
 
-            //item 2.3 (indice de memória com arvoré binária pelo continente)
+            //item 2.3 (indice de memória com árvore binária pelo continente)
             ArvoreBinaria arvore = new ArvoreBinaria();
             bytesCounter = 0;
+            String continenteAtual = null;
+            long bytesFinal = 0;
             using (StreamReader sr = new StreamReader(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "DataFile.csv")))
             {
                 while ((line = sr.ReadLine()) != null)
                 {
                     String continente = line.Split(';')[3];
+
+                    if (continente != continenteAtual)
+                    {
+                        if (arvore.Buscar(continenteAtual) != null) {
+                            NoArvore nodo = arvore.Buscar(continenteAtual);
+                            ObjetoParaArvore objetoParaArvore = (ObjetoParaArvore)nodo.Dados();
+                            objetoParaArvore.enderecoFinal = bytesFinal;
+                        }
+                    }
+
                     if (arvore.Buscar(continente) == null)
                     {
-                        arvore.Inserir(new ObjetoParaArvore(continente));
+                        arvore.Inserir(new ObjetoParaArvore(continente, bytesCounter));
+                        continenteAtual = continente;
                     }
-                    NoArvore nodo = arvore.Buscar(continente);
-                    ObjetoParaArvore objetoParaArvore = (ObjetoParaArvore)nodo.Dados();
-                    objetoParaArvore.enderecos.Add(bytesCounter);
+                    bytesFinal = bytesCounter;
                     bytesCounter += ASCIIEncoding.Unicode.GetByteCount(line);
+                }
+            }
+            //MostrarTodos(dataFilePath);
+        }
+
+        public static void MostrarTodos(string dataFilePath)
+        {
+            using (StreamReader sr = new StreamReader(dataFilePath))
+            {
+                string line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    Console.WriteLine(line);
                 }
             }
         }
