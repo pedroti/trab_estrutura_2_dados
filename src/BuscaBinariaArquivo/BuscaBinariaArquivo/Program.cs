@@ -14,31 +14,33 @@ namespace BuscaBinariaArquivo
             long bytesCounterBegin = 0;
             string id;
             string currentIsoCode = string.Empty;
-            string newIsoCode = string.Empty;
             int dataFileSize = 0;
             string dataFilePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "DataFile.csv");
-            File.Delete(Path.Combine(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIDFile.txt")));
-            File.Delete(Path.Combine(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIsoCodeFile.txt")));
+            string indexIdFilePath = Path.Combine(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIDFile.txt"));
+            string indexIsoCodeFilePath = Path.Combine(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIsoCodeFile.txt"));
 
-            if (!File.Exists(Path.Combine(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIDFile.txt"))) ||
-                !File.Exists(Path.Combine(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIsoCodeFile.txt"))))
+            File.Delete(indexIdFilePath);
+            File.Delete(indexIsoCodeFilePath);
+
+            if (!File.Exists(indexIdFilePath) ||
+                !File.Exists(indexIsoCodeFilePath))
             {
-                File.Delete(Path.Combine(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIDFile.txt")));
-                File.Delete(Path.Combine(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIsoCodeFile.txt")));
+                File.Delete(indexIdFilePath);
+                File.Delete(indexIsoCodeFilePath);
 
                 //2.1 e 2.2
                 using (StreamReader sr = new StreamReader(dataFilePath))
-                using (StreamWriter sw = new StreamWriter(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIDFile.txt")))
-                using (StreamWriter sw2 = new StreamWriter(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIsoCodeFile.txt")))
+                using (StreamWriter sw = new StreamWriter(indexIdFilePath))
+                using (StreamWriter sw2 = new StreamWriter(indexIsoCodeFilePath))
                 {
-                    dataFileSize = sr.BaseStream.Length.ToString().Length;
+                    dataFileSize = 8;
                     while ((line = sr.ReadLine()) != null)
                     {
                         id = line.Substring(0, line.IndexOf(';'));
 
-                        sw.WriteLine(id.PadLeft(5, '0') + ';' + (bytesCounter.ToString().PadLeft(sr.BaseStream.Length.ToString().Length, '0')));
+                        sw.WriteLine(id.PadLeft(5, '0') + ';' + (bytesCounter.ToString().PadLeft(dataFileSize, '0')));
 
-                        newIsoCode = line.Substring(id.Length + 1, (line.IndexOf(';', (id.Length + 1)) - id.Length - 1));
+                        string newIsoCode = line.Substring(id.Length + 1, (line.IndexOf(';', (id.Length + 1)) - id.Length - 1));
 
                         if (currentIsoCode.Equals(string.Empty))
                         {
@@ -61,7 +63,7 @@ namespace BuscaBinariaArquivo
             //item 2.3 (indice de memória com hash pela data)
             Dictionary<String, List<long>> hash = new Dictionary<String, List<long>>();
             bytesCounter = 0;
-            using (StreamReader sr = new StreamReader(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "DataFile.csv")))
+            using (StreamReader sr = new StreamReader(dataFilePath))
             {
                 while ((line = sr.ReadLine()) != null)
                 {
@@ -80,7 +82,7 @@ namespace BuscaBinariaArquivo
             bytesCounter = 0;
             String continenteAtual = null;
             long bytesFinal = 0;
-            using (StreamReader sr = new StreamReader(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "DataFile.csv")))
+            using (StreamReader sr = new StreamReader(dataFilePath))
             {
                 while ((line = sr.ReadLine()) != null)
                 {
