@@ -94,6 +94,43 @@ namespace BuscaBinariaArquivo
             }
         }
 
+        public static void BuscarResultadoHipotese()
+        {//utilizando arquivo com iso_codes e intervalo - 2.2
+            //ler o arquivo de indices por isocode
+            //para cada isocode procurar pela data mais antiga (sempre a última daquele isocode)
+            //pegando a informação do final e lendo byte a byte e armazenando até chegar no \n, dai parar
+            //pegar o dado de people_vaccinated e life_expectancy
+            //armazenar isso em uma lista
+            //imprimir ordenado por life_expectancy e people_vaccinated
+            //ou acumular em lista e exibir todos os registros para aquele país / iso_code
+        }
+
+        public static void BuscarPorData()
+        {//utilizando estrutura hash - 2.3
+            //pesquisa pela data (que tem um hash)
+            //percorre a lista para aquele hash sobre a data
+            //busca no arquivo de data a linha inteira começando do indice salvo na lista(até achar o \n)
+            //ve se aquela é a linha que contém o que estamos querendo
+            //poderia filtrar por um país, por exemplo
+            //aquela data e dentre as datas, aquele país
+            //ou acumular em lista e exibir todos os registros para aquela data
+        }
+
+        public static void BuscarPorId()
+        {//utilizando arquivo de índices por id - 2.1
+            //consultar por um ID
+            //consultar no arquivo de indice por ID qual o índice daquele ID
+            //ir no arquivo e buscar toda aquela linha (do inicio do índice até achar o \n)
+        }
+
+        public static void BuscarPorContinente()
+        {//utilizando a árvore binária por continente - 2.4
+            //árvore binária contendo o intervalo que possui os registros para aquele continenete
+            //dito um continente, podemos saber o incio e o fim daquele continente
+            //e realizar busca binária por outras informações dentro dele
+        }
+
+
         public static void BuscaRegistro(int numeroRegistro, string path)
         {
             Console.WriteLine($"Buscando registro numero {numeroRegistro}:");
