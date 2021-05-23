@@ -47,7 +47,7 @@ namespace BuscaBinariaArquivo
                         {
                             sw2.WriteLine(currentIsoCode + ';' +
                                          (bytesCounterBegin.ToString().PadLeft(dataFileSize, '0') + ";" +
-                                         (bytesCounter.ToString().PadLeft(dataFileSize - 1, '0'))));
+                                         ((bytesCounter - 1).ToString().PadLeft(dataFileSize, '0'))));
                             currentIsoCode = newIsoCode;
                             bytesCounterBegin = bytesCounter;
                         }
@@ -96,12 +96,28 @@ namespace BuscaBinariaArquivo
 
         public static void BuscarResultadoHipotese()
         {//utilizando arquivo com iso_codes e intervalo - 2.2
+
             //ler o arquivo de indices por isocode
+
+            using (StreamReader sr = new StreamReader(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIsoCodeFile.txt")))
+            {
+
+            }
+
             //para cada isocode procurar pela data mais antiga (sempre a última daquele isocode)
+
             //pegando a informação do final e lendo byte a byte e armazenando até chegar no \n, dai parar
+
             //pegar o dado de people_vaccinated e life_expectancy
+
             //armazenar isso em uma lista
-            //imprimir ordenado por life_expectancy e people_vaccinated
+
+            //imprimir ordenado por life_expectancy e people_vaccinated_per_hundred
+
+            //imprimir uma só ordenado por life_expectancy
+
+            //imprimir outra só ordenado por people_vaccinated_per_hundred
+
             //ou acumular em lista e exibir todos os registros para aquele país / iso_code
         }
 
