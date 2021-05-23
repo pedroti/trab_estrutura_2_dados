@@ -37,3 +37,16 @@ C:\Users\Pedro\OneDrive\Documentos\git\cic_ucs\2021-2\Algoritmo e Estrutura de D
 C:\Users\Pedro\OneDrive\Documentos\git\cic_ucs\2021-2\Algoritmo e Estrutura de Dados 2\trabalhogit\trab_estrutura_2_dados\src\BuscaBinariaArquivo\BuscaBinariaArquivo\obj\Debug\netcoreapp3.1\BuscaBinariaArquivo.dll
 C:\Users\Pedro\OneDrive\Documentos\git\cic_ucs\2021-2\Algoritmo e Estrutura de Dados 2\trabalhogit\trab_estrutura_2_dados\src\BuscaBinariaArquivo\BuscaBinariaArquivo\obj\Debug\netcoreapp3.1\BuscaBinariaArquivo.pdb
 C:\Users\Pedro\OneDrive\Documentos\git\cic_ucs\2021-2\Algoritmo e Estrutura de Dados 2\trabalhogit\trab_estrutura_2_dados\src\BuscaBinariaArquivo\BuscaBinariaArquivo\obj\Debug\netcoreapp3.1\BuscaBinariaArquivo.genruntimeconfig.cache
+C:\Users\User\Source\Repos\trab_estrutura_2_dados\src\BuscaBinariaArquivo\BuscaBinariaArquivo\bin\Debug\netcoreapp3.1\BuscaBinariaArquivo.exe
+C:\Users\User\Source\Repos\trab_estrutura_2_dados\src\BuscaBinariaArquivo\BuscaBinariaArquivo\bin\Debug\netcoreapp3.1\BuscaBinariaArquivo.deps.json
+C:\Users\User\Source\Repos\trab_estrutura_2_dados\src\BuscaBinariaArquivo\BuscaBinariaArquivo\bin\Debug\netcoreapp3.1\BuscaBinariaArquivo.runtimeconfig.json
+C:\Users\User\Source\Repos\trab_estrutura_2_dados\src\BuscaBinariaArquivo\BuscaBinariaArquivo\bin\Debug\netcoreapp3.1\BuscaBinariaArquivo.runtimeconfig.dev.json
+C:\Users\User\Source\Repos\trab_estrutura_2_dados\src\BuscaBinariaArquivo\BuscaBinariaArquivo\bin\Debug\netcoreapp3.1\BuscaBinariaArquivo.dll
+C:\Users\User\Source\Repos\trab_estrutura_2_dados\src\BuscaBinariaArquivo\BuscaBinariaArquivo\bin\Debug\netcoreapp3.1\BuscaBinariaArquivo.pdb
+C:\Users\User\Source\Repos\trab_estrutura_2_dados\src\BuscaBinariaArquivo\BuscaBinariaArquivo\obj\Debug\netcoreapp3.1\BuscaBinariaArquivo.csprojAssemblyReference.cache
+C:\Users\User\Source\Repos\trab_estrutura_2_dados\src\BuscaBinariaArquivo\BuscaBinariaArquivo\obj\Debug\netcoreapp3.1\BuscaBinariaArquivo.AssemblyInfoInputs.cache
+C:\Users\User\Source\Repos\trab_estrutura_2_dados\src\BuscaBinariaArquivo\BuscaBinariaArquivo\obj\Debug\netcoreapp3.1\BuscaBinariaArquivo.AssemblyInfo.cs
+C:\Users\User\Source\Repos\trab_estrutura_2_dados\src\BuscaBinariaArquivo\BuscaBinariaArquivo\obj\Debug\netcoreapp3.1\BuscaBinariaArquivo.csproj.CoreCompileInputs.cache
+C:\Users\User\Source\Repos\trab_estrutura_2_dados\src\BuscaBinariaArquivo\BuscaBinariaArquivo\obj\Debug\netcoreapp3.1\BuscaBinariaArquivo.dll
+C:\Users\User\Source\Repos\trab_estrutura_2_dados\src\BuscaBinariaArquivo\BuscaBinariaArquivo\obj\Debug\netcoreapp3.1\BuscaBinariaArquivo.pdb
+C:\Users\User\Source\Repos\trab_estrutura_2_dados\src\BuscaBinariaArquivo\BuscaBinariaArquivo\obj\Debug\netcoreapp3.1\BuscaBinariaArquivo.genruntimeconfig.cache

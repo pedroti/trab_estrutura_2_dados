@@ -11,22 +11,52 @@ namespace BuscaBinariaArquivo
         {
             string line;
             long bytesCounter = 0;
+            long bytesCounterBegin = 0;
             string id;
+            string currentIsoCode = string.Empty;
+            string newIsoCode = string.Empty;
+            int dataFileSize = 0;
             File.Delete(Path.Combine(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIDFile.txt")));
+            File.Delete(Path.Combine(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIsoCodeFile.txt")));
 
-            using (StreamReader sr = new StreamReader(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "DataFile.csv")))
-            using (StreamWriter sw = new StreamWriter(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIDFile.txt")))
+            if (!File.Exists(Path.Combine(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIDFile.txt"))) ||
+                !File.Exists(Path.Combine(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIsoCodeFile.txt"))))
             {
-                while ((line = sr.ReadLine()) != null)
+                File.Delete(Path.Combine(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIDFile.txt")));
+                File.Delete(Path.Combine(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIsoCodeFile.txt")));
+
+                //2.1 e 2.2
+                using (StreamReader sr = new StreamReader(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "DataFile.csv")))
+                using (StreamWriter sw = new StreamWriter(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIDFile.txt")))
+                using (StreamWriter sw2 = new StreamWriter(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIsoCodeFile.txt")))
                 {
-                    id = line.Substring(0, line.IndexOf(';'));
+                    dataFileSize = sr.BaseStream.Length.ToString().Length;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        id = line.Substring(0, line.IndexOf(';'));
 
-                    sw.WriteLine(id.PadLeft(5, '0') + ';' + (bytesCounter.ToString().PadLeft(sr.BaseStream.Length.ToString().Length, '0')));
+                        sw.WriteLine(id.PadLeft(5, '0') + ';' + (bytesCounter.ToString().PadLeft(sr.BaseStream.Length.ToString().Length, '0')));
 
-                    bytesCounter += ASCIIEncoding.Unicode.GetByteCount(line);
+                        newIsoCode = line.Substring(id.Length + 1, (line.IndexOf(';', (id.Length + 1)) - id.Length - 1));
+
+                        if (currentIsoCode.Equals(string.Empty))
+                        {
+                            currentIsoCode = newIsoCode;
+                        }
+                        else if (!currentIsoCode.Equals(newIsoCode))
+                        {
+                            sw2.WriteLine(currentIsoCode + ';' +
+                                         (bytesCounterBegin.ToString().PadLeft(dataFileSize, '0') + ";" +
+                                         (bytesCounter.ToString().PadLeft(dataFileSize - 1, '0'))));
+                            currentIsoCode = newIsoCode;
+                            bytesCounterBegin = bytesCounter;
+                        }
+
+                        bytesCounter += ASCIIEncoding.Unicode.GetByteCount(line);
+                    }
                 }
             }
-            
+
             //item 2.3 (indice de memória com hash pela data)
             Dictionary<String, List<long>> hash = new Dictionary<String, List<long>>();
             bytesCounter = 0;
@@ -62,56 +92,93 @@ namespace BuscaBinariaArquivo
                     bytesCounter += ASCIIEncoding.Unicode.GetByteCount(line);
                 }
             }
-           
+        }
 
-            //File.AppendAllLines(Path.Combine(docPath, "WriteFile.txt"), registros);
+        public static void BuscaRegistro(int numeroRegistro, string path)
+        {
+            Console.WriteLine($"Buscando registro numero {numeroRegistro}:");
+            Encoding ascii = Encoding.ASCII;
+            using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read))
+            {
+                BuscaRegistroRecursivo(numeroRegistro, 0, fs.Length, fs, ascii, null);
+            }
+        }
 
-            //using (FileStream fs = new FileStream(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DataFile.txt"), FileMode.Open, FileAccess.Read),
-            //             fsIndex = new FileStream(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "IndexIDFile.txt"), FileMode.Open, FileAccess.Write))
-            //{
-            //    string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        public static void BuscaRegistroRecursivo(int numeroRegistro, long limiteSup, long limiteInf, FileStream fs, Encoding ascii, string ultimoCodigoEncontrado)
+        {
+            long meio = limiteSup + ((limiteInf - limiteSup) / 2);
+            byte[] caracter = new byte[1];
+            char[] encodedCaracter = new char[1];
+            string registro = string.Empty;
+            string[] registroSplit;
 
-            //    File.Delete(Path.Combine(docPath, "IndexIDFile.txt"));
+            for (long i = meio; i >= 0 && i <= limiteInf; i--)
+            {
+                fs.Seek(i, SeekOrigin.Begin);
+                fs.Read(caracter, 0, 1);
+                ascii.GetChars(caracter, 0, 1, encodedCaracter, 0);
+                if (encodedCaracter[0] == '\n')
+                {
+                    meio = i + 1;
+                    break;
+                }
+                else if (i == 0)
+                {
+                    meio = i;
+                    break;
+                }
+                else
+                {
+                    caracter[0] = new byte();
+                    encodedCaracter[0] = new char();
+                }
+            }
 
-            //    byte[] caracter = new byte[1];
-            //    char[] encodedCaracter = new char[1];
-            //    long startLineIndex = 0;
+            for (long i = meio; i >= 0 && i <= limiteInf; i++)
+            {
+                fs.Seek(i, SeekOrigin.Begin);
+                fs.Read(caracter, 0, 1);
+                ascii.GetChars(caracter, 0, 1, encodedCaracter, 0);
+                if (encodedCaracter[0] == '\n')
+                {
+                    break;
+                }
+                else
+                {
+                    registro = registro + encodedCaracter[0];
+                }
+            }
+            registroSplit = registro.Split(' ');
 
-            //    string id = string.Empty;
+            if (ultimoCodigoEncontrado == registroSplit[0])
+            {
+                Console.WriteLine("Código não encontrado!");
+                Environment.Exit(0);
+            }
+            else
+            {
+                Console.WriteLine(registro);
+            }
 
-            //    for (long bytesCounter = 0; bytesCounter <= fs.Length; bytesCounter++)
-            //    {
-            //        fs.Seek(bytesCounter, SeekOrigin.Begin);
-            //        fs.Read(caracter, 0, 1);
-            //        ascii.GetChars(caracter, 0, 1, encodedCaracter, 0);
-
-
-            //        if (bytesCounter == 0)
-            //        {
-            //            //guarda in
-            //        }
-            //        else if (encodedCaracter[0] == ';' && string.IsNullOrEmpty(id))
-            //        {
-
-            //        }
-            //        else if (encodedCaracter[0] == '\n')
-            //        {
-            //            startLineIndex = bytesCounter + 1;
-            //        }
-            //        else
-            //        {
-            //            caracter[0] = new byte();
-            //            encodedCaracter[0] = new char();
-            //        }
-            //        //File.AppendAllLines(Path.Combine(docPath, "WriteFile.txt"), registros);
-            //    }
-
-            //    BuscaRegistroRecursivo(numeroRegistro, 0, fs.Length, fs, ascii, null);
-            //}
-
-
-            //
-
+            if (Convert.ToInt64(registroSplit[0]) == numeroRegistro)
+            {
+                Environment.Exit(0);
+            }
+            else if (meio == 0)
+            {
+                Console.WriteLine("Código não encontrado!");
+                Environment.Exit(0);
+            }
+            else if (numeroRegistro > Convert.ToInt64(registroSplit[0]))
+            {
+                //parte de baixo
+                BuscaRegistroRecursivo(numeroRegistro, meio, limiteInf, fs, ascii, registroSplit[0]);
+            }
+            else
+            {
+                //parte de cima
+                BuscaRegistroRecursivo(numeroRegistro, limiteSup, meio, fs, ascii, registroSplit[0]);
+            }
         }
     }
 }
