@@ -9,8 +9,6 @@ namespace BuscaBinariaArquivo
     {
         static void Main(string[] args)
         {
-            Encoding ascii = Encoding.ASCII;
-
             string line;
             long bytesCounter = 0;
             string id;
@@ -29,7 +27,7 @@ namespace BuscaBinariaArquivo
                 }
             }
             
-            //item 
+            //item 2.3 (indice de memória com hash pela data)
             Dictionary<String, List<long>> hash = new Dictionary<String, List<long>>();
             bytesCounter = 0;
             using (StreamReader sr = new StreamReader(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "DataFile.csv")))
@@ -45,6 +43,27 @@ namespace BuscaBinariaArquivo
                     bytesCounter += ASCIIEncoding.Unicode.GetByteCount(line);
                 }
             }
+
+            //item 2.3 (indice de memória com arvoré binária pelo continente)
+            ArvoreBinaria arvore = new ArvoreBinaria();
+            bytesCounter = 0;
+            using (StreamReader sr = new StreamReader(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "DataFile.csv")))
+            {
+                while ((line = sr.ReadLine()) != null)
+                {
+                    String continente = line.Split(';')[3];
+                    if (arvore.Buscar(continente) == null)
+                    {
+                        arvore.Inserir(new ObjetoParaArvore(continente));
+                    }
+                    NoArvore nodo = arvore.Buscar(continente);
+                    ObjetoParaArvore objetoParaArvore = (ObjetoParaArvore)nodo.Dados();
+                    objetoParaArvore.enderecos.Add(bytesCounter);
+                    bytesCounter += ASCIIEncoding.Unicode.GetByteCount(line);
+                }
+            }
+           
+
             //File.AppendAllLines(Path.Combine(docPath, "WriteFile.txt"), registros);
 
             //using (FileStream fs = new FileStream(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DataFile.txt"), FileMode.Open, FileAccess.Read),
