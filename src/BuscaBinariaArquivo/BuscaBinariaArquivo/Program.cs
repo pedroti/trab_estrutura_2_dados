@@ -25,9 +25,6 @@ namespace BuscaBinariaArquivo
             if (!File.Exists(indexIdFilePath) ||
                 !File.Exists(indexIsoCodeFilePath))
             {
-                File.Delete(indexIdFilePath);
-                File.Delete(indexIsoCodeFilePath);
-
                 //2.1 e 2.2
                 using (StreamReader sr = new StreamReader(dataFilePath))
                 using (StreamWriter sw = new StreamWriter(indexIdFilePath))
@@ -50,12 +47,12 @@ namespace BuscaBinariaArquivo
                         {
                             sw2.WriteLine(currentIsoCode + ';' +
                                          (bytesCounterBegin.ToString().PadLeft(dataFileSize, '0') + ";" +
-                                         ((bytesCounter - 1).ToString().PadLeft(dataFileSize, '0'))));
+                                         ((bytesCounter).ToString().PadLeft(dataFileSize, '0'))));
                             currentIsoCode = newIsoCode;
                             bytesCounterBegin = bytesCounter;
                         }
 
-                        bytesCounter += ASCIIEncoding.Unicode.GetByteCount(line);
+                        bytesCounter += ASCIIEncoding.ASCII.GetByteCount(line) + 1;
                     }
                 }
             }
@@ -73,7 +70,7 @@ namespace BuscaBinariaArquivo
                         hash.Add(date, new List<long>());
                     }
                     hash.GetValueOrDefault(date).Add(bytesCounter);
-                    bytesCounter += ASCIIEncoding.Unicode.GetByteCount(line);
+                    bytesCounter += ASCIIEncoding.ASCII.GetByteCount(line);
                 }
             }
 
@@ -103,10 +100,11 @@ namespace BuscaBinariaArquivo
                         continenteAtual = continente;
                     }
                     bytesFinal = bytesCounter;
-                    bytesCounter += ASCIIEncoding.Unicode.GetByteCount(line);
+                    bytesCounter += ASCIIEncoding.ASCII.GetByteCount(line);
                 }
             }
             //MostrarTodos(dataFilePath);
+            BuscarResultadoHipotese();
         }
 
         public static void MostrarTodos(string dataFilePath)
@@ -128,7 +126,72 @@ namespace BuscaBinariaArquivo
 
             using (StreamReader sr = new StreamReader(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIsoCodeFile.txt")))
             {
+                string line;
+                string[] data;
+                byte[] caracter = new byte[1];
+                char[] encodedCaracter = new char[1];
 
+                var list = new List<ItemFileHipotese>();
+                ItemFileHipotese item;
+                StringBuilder dataLine;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    data = line.Split(';');
+                    Encoding ascii = Encoding.ASCII;
+                    using (FileStream fs = new FileStream(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "DataFile.csv"), FileMode.Open, FileAccess.Read))
+                    {
+                        item = new ItemFileHipotese();
+                        dataLine = new StringBuilder();
+                        long i;
+                        for (i = Convert.ToInt64(data[2]) - 1; i >= Convert.ToInt64(data[1]); i--)
+                        {
+                            fs.Seek(i, SeekOrigin.Begin);
+                            fs.Read(caracter, 0, 1);
+                            ascii.GetChars(caracter, 0, 1, encodedCaracter, 0); 
+                            
+                            if (encodedCaracter[0] == '\n')
+                            {
+                                break;
+                            }
+                        }
+
+                        int columns = 1;
+                        for (long j = i+1; j < Convert.ToInt64(data[2]); j++)
+                        {
+                            fs.Seek(j, SeekOrigin.Begin);
+                            fs.Read(caracter, 0, 1);
+                            ascii.GetChars(caracter, 0, 1, encodedCaracter, 0);
+
+                            if (encodedCaracter[0] == ';')
+                            {
+
+                                if (columns == 2)
+                                {
+                                    item.IsoCode = dataLine.ToString();
+                                }
+                                else if (columns == 10)
+                                {
+                                    item.IsoCode = dataLine.ToString();
+                                }
+                                else if (columns == 15)
+                                {
+                                    item.IsoCode = dataLine.ToString();
+                                }
+
+                                columns++;
+                                dataLine = new StringBuilder();
+                            }
+                            else
+                            {
+                                dataLine.Append(encodedCaracter);
+                            }
+
+                            caracter[0] = new byte();
+                            encodedCaracter[0] = new char();
+                        }
+                        list.Add(item);
+                    }
+                }
             }
 
             //para cada isocode procurar pela data mais antiga (sempre a última daquele isocode)
