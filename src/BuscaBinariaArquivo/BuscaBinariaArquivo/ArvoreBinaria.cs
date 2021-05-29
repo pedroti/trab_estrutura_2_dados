@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 //ref https://github.com/ciroDourado/cs_bst
-class ArvoreBinaria
+public class ArvoreBinaria
 {
 	// atributos
 	private NoArvore raiz;

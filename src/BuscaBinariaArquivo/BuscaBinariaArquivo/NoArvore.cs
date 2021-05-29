@@ -1,6 +1,6 @@
 ﻿using System;
 
-class NoArvore
+public class NoArvore
 {
 	// atributos
 	private NoArvore esquerda;

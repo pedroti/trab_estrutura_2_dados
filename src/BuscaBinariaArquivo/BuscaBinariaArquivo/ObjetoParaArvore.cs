@@ -1,6 +1,6 @@
 ﻿namespace BuscaBinariaArquivo
 {
-    class ObjetoParaArvore : Tabela
+    public class ObjetoParaArvore : Tabela
     {
         public ObjetoParaArvore(string continente, long enderecoInicial)
         {

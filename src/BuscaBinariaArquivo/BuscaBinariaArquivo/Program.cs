@@ -88,7 +88,7 @@ namespace BuscaBinariaArquivo
                         hash.Add(date, new List<long>());
                     }
                     hash.GetValueOrDefault(date).Add(bytesCounter);
-                    bytesCounter += ASCIIEncoding.UTF8.GetByteCount(line);
+                    bytesCounter += ASCIIEncoding.UTF8.GetByteCount(line) + 2;
                 }
             }
 
@@ -118,11 +118,14 @@ namespace BuscaBinariaArquivo
                         continenteAtual = continente;
                     }
                     bytesFinal = bytesCounter;
-                    bytesCounter += ASCIIEncoding.UTF8.GetByteCount(line);
+                    bytesCounter += ASCIIEncoding.UTF8.GetByteCount(line) + 2;
                 }
             }
             //MostrarTodos(dataFilePath);
-            BuscarResultadoHipotese();
+            //String registroPelaData = BuscarPorData(hash);
+            String registroContinente = BuscarPorContinente(arvore, 18488);
+            // BuscarResultadoHipotese();
+            int a = 0;
         }
 
         public static void MostrarTodos(string dataFilePath)
@@ -252,15 +255,32 @@ namespace BuscaBinariaArquivo
             //}
         }
 
-        public static void BuscarPorData()
-        {//utilizando estrutura hash - 2.3
-            //pesquisa pela data (que tem um hash)
-            //percorre a lista para aquele hash sobre a data
-            //busca no arquivo de data a linha inteira começando do indice salvo na lista(até achar o \n)
-            //ve se aquela é a linha que contém o que estamos querendo
-            //poderia filtrar por um país, por exemplo
-            //aquela data e dentre as datas, aquele país
-            //ou acumular em lista e exibir todos os registros para aquela data
+        public static String BuscarPorData(Dictionary<String, List<long>> hash)
+        {
+            string data = "2020-12-12";
+            byte[] caracter = new byte[1];
+            char[] encodedCaracter = new char[1];
+            string registro = "";
+            string dataFilePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "DataFile.csv");
+            List<long> lista = hash.GetValueOrDefault(data);
+            using (FileStream fs = new FileStream(dataFilePath, FileMode.Open, FileAccess.Read))
+            {
+                for (long i = lista[0]; ; i++)
+                {
+                    fs.Seek(i, SeekOrigin.Begin);
+                    fs.Read(caracter, 0, 1);
+                    Encoding.UTF8.GetChars(caracter, 0, 1, encodedCaracter, 0);
+                    if (encodedCaracter[0] == '\n')
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        registro = registro + encodedCaracter[0];
+                    }
+                }
+            }
+            return registro;
         }
 
         public static void BuscarPorId()
@@ -270,11 +290,18 @@ namespace BuscaBinariaArquivo
             //ir no arquivo e buscar toda aquela linha (do inicio do índice até achar o \n)
         }
 
-        public static void BuscarPorContinente()
-        {//utilizando a árvore binária por continente - 2.4
-            //árvore binária contendo o intervalo que possui os registros para aquele continenete
-            //dito um continente, podemos saber o incio e o fim daquele continente
-            //e realizar busca binária por outras informações dentro dele
+        public static String BuscarPorContinente(ArvoreBinaria arvore, int numeroRegistro)
+        {
+            string continente = "Europe";
+            string registro = "";
+            string dataFilePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "DataFile.csv");
+            NoArvore nodo = arvore.Buscar(continente);
+            ObjetoParaArvore objetoParaArvore = (ObjetoParaArvore)nodo.Dados();
+            using (FileStream fs = new FileStream(dataFilePath, FileMode.Open, FileAccess.Read))
+            {
+                 BuscaRegistroRecursivo(numeroRegistro, objetoParaArvore.enderecoInicial, objetoParaArvore.enderecoFinal, fs, Encoding.UTF8, null);
+            }
+            return registro;
         }
 
 
