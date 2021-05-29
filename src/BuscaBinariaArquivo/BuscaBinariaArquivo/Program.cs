@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace BuscaBinariaArquivo
@@ -22,22 +23,38 @@ namespace BuscaBinariaArquivo
             File.Delete(indexIdFilePath);
             File.Delete(indexIsoCodeFilePath);
 
-            if (!File.Exists(indexIdFilePath) ||
-                !File.Exists(indexIsoCodeFilePath))
+            if (!File.Exists(indexIdFilePath))
             {
-                //2.1 e 2.2
-                using (StreamReader sr = new StreamReader(dataFilePath))
-                using (StreamWriter sw = new StreamWriter(indexIdFilePath))
-                using (StreamWriter sw2 = new StreamWriter(indexIsoCodeFilePath))
+                //2.1
+                using (StreamReader sr = new StreamReader(dataFilePath, Encoding.UTF8))
+                using (StreamWriter sw = new StreamWriter(indexIdFilePath, true, Encoding.UTF8))
                 {
-                    dataFileSize = 8;
+                    dataFileSize = sr.BaseStream.Length.ToString().Length;
                     while ((line = sr.ReadLine()) != null)
                     {
                         id = line.Substring(0, line.IndexOf(';'));
 
                         sw.WriteLine(id.PadLeft(5, '0') + ';' + (bytesCounter.ToString().PadLeft(dataFileSize, '0')));
 
-                        string newIsoCode = line.Substring(id.Length + 1, (line.IndexOf(';', (id.Length + 1)) - id.Length - 1));
+                        bytesCounter += (ASCIIEncoding.UTF8.GetByteCount(line) + 3);
+                    }
+                }
+            }
+
+            if (!File.Exists(indexIsoCodeFilePath))
+            {
+                //2.2
+                using (StreamReader sr = new StreamReader(dataFilePath, Encoding.UTF8))
+                using (StreamWriter sw = new StreamWriter(indexIsoCodeFilePath, true, Encoding.UTF8))
+                {
+                    bytesCounter = 0;
+                    dataFileSize = sr.BaseStream.Length.ToString().Length;
+                    var newIsoCode = string.Empty;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        id = line.Substring(0, line.IndexOf(';'));
+
+                        newIsoCode = line.Substring(id.Length + 1, (line.IndexOf(';', (id.Length + 1)) - id.Length - 1));
 
                         if (currentIsoCode.Equals(string.Empty))
                         {
@@ -45,14 +62,15 @@ namespace BuscaBinariaArquivo
                         }
                         else if (!currentIsoCode.Equals(newIsoCode))
                         {
-                            sw2.WriteLine(currentIsoCode + ';' +
-                                         (bytesCounterBegin.ToString().PadLeft(dataFileSize, '0') + ";" +
-                                         ((bytesCounter).ToString().PadLeft(dataFileSize, '0'))));
+                            //bytesCounter -= 2;
+                            sw.WriteLine(currentIsoCode + ';' +
+                                        ((bytesCounterBegin).ToString().PadLeft(dataFileSize, '0') + ";" +
+                                        ((bytesCounter - 2).ToString().PadLeft(dataFileSize, '0'))));
                             currentIsoCode = newIsoCode;
                             bytesCounterBegin = bytesCounter;
                         }
 
-                        bytesCounter += ASCIIEncoding.ASCII.GetByteCount(line) + 1;
+                        bytesCounter += (ASCIIEncoding.UTF8.GetByteCount(line) + 2);
                     }
                 }
             }
@@ -70,7 +88,7 @@ namespace BuscaBinariaArquivo
                         hash.Add(date, new List<long>());
                     }
                     hash.GetValueOrDefault(date).Add(bytesCounter);
-                    bytesCounter += ASCIIEncoding.ASCII.GetByteCount(line);
+                    bytesCounter += ASCIIEncoding.UTF8.GetByteCount(line);
                 }
             }
 
@@ -100,7 +118,7 @@ namespace BuscaBinariaArquivo
                         continenteAtual = continente;
                     }
                     bytesFinal = bytesCounter;
-                    bytesCounter += ASCIIEncoding.ASCII.GetByteCount(line);
+                    bytesCounter += ASCIIEncoding.UTF8.GetByteCount(line);
                 }
             }
             //MostrarTodos(dataFilePath);
@@ -124,20 +142,20 @@ namespace BuscaBinariaArquivo
 
             //ler o arquivo de indices por isocode
 
+            var list = new List<ItemFileHipotese>();
+
             using (StreamReader sr = new StreamReader(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIsoCodeFile.txt")))
             {
                 string line;
                 string[] data;
                 byte[] caracter = new byte[1];
                 char[] encodedCaracter = new char[1];
-
-                var list = new List<ItemFileHipotese>();
                 ItemFileHipotese item;
                 StringBuilder dataLine;
                 while ((line = sr.ReadLine()) != null)
                 {
                     data = line.Split(';');
-                    Encoding ascii = Encoding.ASCII;
+                    Encoding ascii = Encoding.UTF8;
                     using (FileStream fs = new FileStream(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "DataFile.csv"), FileMode.Open, FileAccess.Read))
                     {
                         item = new ItemFileHipotese();
@@ -156,26 +174,26 @@ namespace BuscaBinariaArquivo
                         }
 
                         int columns = 1;
-                        for (long j = i+1; j < Convert.ToInt64(data[2]); j++)
+                        for (long j = i+1; j < Convert.ToInt64(data[2] + 1); j++)
                         {
                             fs.Seek(j, SeekOrigin.Begin);
                             fs.Read(caracter, 0, 1);
                             ascii.GetChars(caracter, 0, 1, encodedCaracter, 0);
 
-                            if (encodedCaracter[0] == ';')
+                            if (encodedCaracter[0] == ';' || encodedCaracter[0] == '\r')
                             {
 
-                                if (columns == 2)
+                                if (columns == 2 && dataLine.Length > 0)
                                 {
                                     item.IsoCode = dataLine.ToString();
                                 }
-                                else if (columns == 10)
+                                else if (columns == 14 && dataLine.Length > 0)
                                 {
-                                    item.IsoCode = dataLine.ToString();
+                                    item.PopulationDensity = Convert.ToDecimal(dataLine.ToString());
                                 }
-                                else if (columns == 15)
+                                else if (columns == 15 && dataLine.Length > 0)
                                 {
-                                    item.IsoCode = dataLine.ToString();
+                                    item.LifeExpectancy = Convert.ToDecimal(dataLine.ToString());
                                 }
 
                                 columns++;
@@ -194,21 +212,10 @@ namespace BuscaBinariaArquivo
                 }
             }
 
-            //para cada isocode procurar pela data mais antiga (sempre a última daquele isocode)
-
-            //pegando a informação do final e lendo byte a byte e armazenando até chegar no \n, dai parar
-
-            //pegar o dado de people_vaccinated e life_expectancy
-
-            //armazenar isso em uma lista
-
-            //imprimir ordenado por life_expectancy e people_vaccinated_per_hundred
-
-            //imprimir uma só ordenado por life_expectancy
-
-            //imprimir outra só ordenado por people_vaccinated_per_hundred
-
-            //ou acumular em lista e exibir todos os registros para aquele país / iso_code
+            foreach (var item in list.OrderByDescending(x => x.PopulationDensity).ThenByDescending(y => y.LifeExpectancy).ToList())
+            {
+                Console.WriteLine($"{item.IsoCode} - {item.PopulationDensity} - {item.LifeExpectancy}");
+            }
         }
 
         public static void BuscarPorData()
@@ -240,7 +247,7 @@ namespace BuscaBinariaArquivo
         public static void BuscaRegistro(int numeroRegistro, string path)
         {
             Console.WriteLine($"Buscando registro numero {numeroRegistro}:");
-            Encoding ascii = Encoding.ASCII;
+            Encoding ascii = Encoding.UTF8;
             using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
                 BuscaRegistroRecursivo(numeroRegistro, 0, fs.Length, fs, ascii, null);

@@ -1,6 +1,10 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\src",
+    "\\src\\BuscaBinariaArquivo",
+    "\\src\\BuscaBinariaArquivo\\BuscaBinariaArquivo"
   ],
+  "SelectedNode": "\\src\\BuscaBinariaArquivo\\BuscaBinariaArquivo.sln",
   "PreviewInSolutionExplorer": false
 }

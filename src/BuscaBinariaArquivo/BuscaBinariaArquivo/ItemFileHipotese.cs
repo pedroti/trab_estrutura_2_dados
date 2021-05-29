@@ -8,6 +8,7 @@ namespace BuscaBinariaArquivo
     {
         public string IsoCode { get; set; }
         public decimal PeopleVaccinatedPerHundred { get; set; }
+        public decimal PopulationDensity { get; set; }
         public decimal LifeExpectancy { get; set; }
     }
 }
