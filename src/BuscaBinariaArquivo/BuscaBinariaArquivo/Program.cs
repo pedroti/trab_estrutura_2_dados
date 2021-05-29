@@ -174,7 +174,7 @@ namespace BuscaBinariaArquivo
                         }
 
                         int columns = 1;
-                        for (long j = i+1; j < Convert.ToInt64(data[2] + 1); j++)
+                        for (long j = i+1; j <= Convert.ToInt64(data[2]); j++)
                         {
                             fs.Seek(j, SeekOrigin.Begin);
                             fs.Read(caracter, 0, 1);
@@ -212,10 +212,44 @@ namespace BuscaBinariaArquivo
                 }
             }
 
-            foreach (var item in list.OrderByDescending(x => x.PopulationDensity).ThenByDescending(y => y.LifeExpectancy).ToList())
+            var dadosValidos = list.Where(x => x.LifeExpectancy > 0 && x.PopulationDensity > 0).ToList();
+            Console.WriteLine("ISO CODE - DENSIDADE POPULACIONAL - EXPECTATIVA DE VIDA");
+
+            Console.WriteLine("ordenado pela densidade populacional decrescente");
+            foreach (var item in dadosValidos.OrderByDescending(x => x.PopulationDensity).ToList().Take(10))
             {
                 Console.WriteLine($"{item.IsoCode} - {item.PopulationDensity} - {item.LifeExpectancy}");
             }
+
+            Console.WriteLine("ordenado pela espectativa de vida decrescente");
+            foreach (var item in dadosValidos.OrderByDescending(x => x.LifeExpectancy).ToList().Take(10))
+            {
+                Console.WriteLine($"{item.IsoCode} - {item.PopulationDensity} - {item.LifeExpectancy}");
+            }
+
+            Console.WriteLine("ordenado pela densidade populacional crescente");
+            foreach (var item in dadosValidos.OrderBy(x => x.PopulationDensity).ToList().Take(10))
+            {
+                Console.WriteLine($"{item.IsoCode} - {item.PopulationDensity} - {item.LifeExpectancy}");
+            }
+
+            Console.WriteLine("ordenado pela espectativa de vida crescente");
+            foreach (var item in dadosValidos.OrderBy(x => x.LifeExpectancy).ToList().Take(10))
+            {
+                Console.WriteLine($"{item.IsoCode} - {item.PopulationDensity} - {item.LifeExpectancy}");
+            }
+
+            Console.WriteLine("ordenado pela densidade populacional decrescente e expectativa de vida decrescente");
+            foreach (var item in dadosValidos.OrderByDescending(x => x.PopulationDensity).ThenByDescending(y => y.LifeExpectancy).ToList().Take(10))
+            {
+                Console.WriteLine($"{item.IsoCode} - {item.PopulationDensity} - {item.LifeExpectancy}");
+            }
+
+            //Console.WriteLine("ordenado pela densidade populacional decrescente e expectativa de vida crescente");
+            //foreach (var item in dadosValidos.OrderByDescending(x => x.PopulationDensity).ThenBy(y => y.LifeExpectancy).ToList().Take(10))
+            //{
+            //    Console.WriteLine($"{item.IsoCode} - {item.PopulationDensity} - {item.LifeExpectancy}");
+            //}
         }
 
         public static void BuscarPorData()
