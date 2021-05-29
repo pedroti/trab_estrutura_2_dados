@@ -265,7 +265,7 @@ namespace BuscaBinariaArquivo
 
         public static void BuscarPorId()
         {//utilizando arquivo de índices por id - 2.1
-            //consultar por um ID
+            var id = 60816;
             //consultar no arquivo de indice por ID qual o índice daquele ID
             //ir no arquivo e buscar toda aquela linha (do inicio do índice até achar o \n)
         }
