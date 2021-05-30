@@ -1,16 +1,17 @@
-﻿namespace BuscaBinariaArquivo
+﻿using System.Collections.Generic;
+
+namespace BuscaBinariaArquivo
 {
     public class ObjetoParaArvore : Tabela
     {
-        public ObjetoParaArvore(string continente, long enderecoInicial)
+        public ObjetoParaArvore(string continente)
         {
             this.continente = continente;
-            this.enderecoInicial = enderecoInicial;
+            this.enderecos = new List<Endereco>();
         }
 
         public string continente;
-        public long enderecoInicial;
-        public long enderecoFinal;
+        public List<Endereco> enderecos;
 
         public override string IdParaBusca()
         {
