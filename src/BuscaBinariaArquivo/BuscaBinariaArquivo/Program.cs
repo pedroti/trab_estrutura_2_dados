@@ -10,25 +10,40 @@ namespace BuscaBinariaArquivo
     {
         static void Main(string[] args)
         {
-            string line;
-            long bytesCounter = 0;
-            long bytesCounterBegin = 0;
-            string id;
-            string currentIsoCode = string.Empty;
-            int dataFileSize = 0;
+            var encoding = Encoding.ASCII;
             string dataFilePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "DataFile.csv");
             string indexIdFilePath = Path.Combine(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIDFile.txt"));
             string indexIsoCodeFilePath = Path.Combine(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIsoCodeFile.txt"));
 
+            GenerateIndexIDFile(indexIdFilePath, dataFilePath, encoding);
+            BuscarPorId(dataFilePath, indexIdFilePath, encoding);
+            GenerateIndexIsoCodeFile(indexIsoCodeFilePath, dataFilePath, encoding);
+            BuscarResultadoHipotese(dataFilePath, indexIsoCodeFilePath, encoding);
+
+            GenerateHashStructure(dataFilePath, encoding);
+            GenerateBTree(dataFilePath, encoding);
+            //string registroPelaData = BuscarPorData(hash);
+            //string registroContinente = BuscarPorContinente(arvore, 18488);
+
+            //MostrarTodos(dataFilePath);
+        }
+
+        #region 2.1
+        public static void GenerateIndexIDFile(string indexIdFilePath, string dataFilePath, Encoding encoding)
+        {
+            string line;
+            long bytesCounter = 0;
+            string id;
+            int dataFileSize = 0;
+
             File.Delete(indexIdFilePath);
-            File.Delete(indexIsoCodeFilePath);
 
             if (!File.Exists(indexIdFilePath))
             {
-                //2.1
-                using (StreamReader sr = new StreamReader(dataFilePath, Encoding.UTF8))
-                using (StreamWriter sw = new StreamWriter(indexIdFilePath, true, Encoding.UTF8))
+                using (StreamReader sr = new StreamReader(dataFilePath, encoding))
+                using (StreamWriter sw = new StreamWriter(indexIdFilePath, true, encoding))
                 {
+                    var test = sr.GetType();
                     dataFileSize = sr.BaseStream.Length.ToString().Length;
                     while ((line = sr.ReadLine()) != null)
                     {
@@ -36,16 +51,72 @@ namespace BuscaBinariaArquivo
 
                         sw.WriteLine(id.PadLeft(5, '0') + ';' + (bytesCounter.ToString().PadLeft(dataFileSize, '0')));
 
-                        bytesCounter += (ASCIIEncoding.UTF8.GetByteCount(line) + 3);
+                        bytesCounter += (encoding.GetByteCount(line) + 2);
                     }
                 }
             }
+        }
+
+        public static void BuscarPorId(string dataFilePath, string indexIdFilePath, Encoding encoding)
+        {
+            var id = 60816;
+            var endereco = BuscaRegistro(id, indexIdFilePath, encoding); 
+            byte[] caracter = new byte[1];
+            char[] encodedCaracter = new char[1];
+            var registro = new StringBuilder();
+            using (FileStream fs = new FileStream(dataFilePath, FileMode.Open, FileAccess.Read))
+            {
+                for (int i = Convert.ToInt32(endereco); true; i++)
+                {
+                    fs.Seek(i, SeekOrigin.Begin);
+                    fs.Read(caracter, 0, 1);
+                    encoding.GetChars(caracter, 0, 1, encodedCaracter, 0);
+
+                    if (encodedCaracter[0] == '\n')
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        registro.Append(encodedCaracter);
+                    }
+                }
+                Console.WriteLine("Registro Procurado: ");
+                Console.WriteLine(registro.ToString());
+            }
+        }
+
+        public static string BuscaRegistro(int numeroRegistro, string indexIdFilePath, Encoding encoding)
+        {
+            Console.WriteLine($"Buscando registro numero {numeroRegistro}:");
+            var endereco = string.Empty;
+            using (FileStream fs = new FileStream(indexIdFilePath, FileMode.Open, FileAccess.Read))
+            {
+                endereco = BuscaRegistroRecursivo(numeroRegistro, 0, fs.Length, fs, encoding, null);
+            }
+            return endereco;
+        }
+
+        #endregion
+
+        #region 2.2
+
+        public static void GenerateIndexIsoCodeFile(string indexIsoCodeFilePath, string dataFilePath, Encoding encoding)
+        {
+            string line;
+            long bytesCounter = 0;
+            long bytesCounterBegin = 0;
+            string id;
+            string currentIsoCode = string.Empty;
+            int dataFileSize = 0;
+
+            File.Delete(indexIsoCodeFilePath);
 
             if (!File.Exists(indexIsoCodeFilePath))
             {
                 //2.2
-                using (StreamReader sr = new StreamReader(dataFilePath, Encoding.UTF8))
-                using (StreamWriter sw = new StreamWriter(indexIsoCodeFilePath, true, Encoding.UTF8))
+                using (StreamReader sr = new StreamReader(dataFilePath, encoding))
+                using (StreamWriter sw = new StreamWriter(indexIsoCodeFilePath, true, encoding))
                 {
                     bytesCounter = 0;
                     dataFileSize = sr.BaseStream.Length.ToString().Length;
@@ -70,84 +141,20 @@ namespace BuscaBinariaArquivo
                             bytesCounterBegin = bytesCounter;
                         }
 
-                        bytesCounter += (ASCIIEncoding.UTF8.GetByteCount(line) + 2);
+                        bytesCounter += (encoding.GetByteCount(line) + 2);
                     }
-                }
-            }
-
-            //item 2.3 (indice de memória com hash pela data)
-            Dictionary<String, List<long>> hash = new Dictionary<String, List<long>>();
-            bytesCounter = 0;
-            using (StreamReader sr = new StreamReader(dataFilePath))
-            {
-                while ((line = sr.ReadLine()) != null)
-                {
-                    String date = line.Split(';')[2];
-                    if (!hash.ContainsKey(date))
-                    {
-                        hash.Add(date, new List<long>());
-                    }
-                    hash.GetValueOrDefault(date).Add(bytesCounter);
-                    bytesCounter += ASCIIEncoding.UTF8.GetByteCount(line) + 2;
-                }
-            }
-
-            //item 2.3 (indice de memória com árvore binária pelo continente)
-            ArvoreBinaria arvore = new ArvoreBinaria();
-            bytesCounter = 0;
-            String continenteAtual = null;
-            long bytesFinal = 0;
-            using (StreamReader sr = new StreamReader(dataFilePath))
-            {
-                while ((line = sr.ReadLine()) != null)
-                {
-                    String continente = line.Split(';')[3];
-
-                    if (continente != continenteAtual)
-                    {
-                        if (arvore.Buscar(continenteAtual) != null) {
-                            NoArvore nodo = arvore.Buscar(continenteAtual);
-                            ObjetoParaArvore objetoParaArvore = (ObjetoParaArvore)nodo.Dados();
-                            objetoParaArvore.enderecoFinal = bytesFinal;
-                        }
-                    }
-
-                    if (arvore.Buscar(continente) == null)
-                    {
-                        arvore.Inserir(new ObjetoParaArvore(continente, bytesCounter));
-                        continenteAtual = continente;
-                    }
-                    bytesFinal = bytesCounter;
-                    bytesCounter += ASCIIEncoding.UTF8.GetByteCount(line) + 2;
-                }
-            }
-            //MostrarTodos(dataFilePath);
-            //String registroPelaData = BuscarPorData(hash);
-            String registroContinente = BuscarPorContinente(arvore, 18488);
-            // BuscarResultadoHipotese();
-            int a = 0;
-        }
-
-        public static void MostrarTodos(string dataFilePath)
-        {
-            using (StreamReader sr = new StreamReader(dataFilePath))
-            {
-                string line;
-                while ((line = sr.ReadLine()) != null)
-                {
-                    Console.WriteLine(line);
                 }
             }
         }
 
-        public static void BuscarResultadoHipotese()
+        public static void BuscarResultadoHipotese(string dataFilePath, string indexIsoCodeFilePath, Encoding encoding)
         {//utilizando arquivo com iso_codes e intervalo - 2.2
 
             //ler o arquivo de indices por isocode
 
             var list = new List<ItemFileHipotese>();
 
-            using (StreamReader sr = new StreamReader(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "IndexIsoCodeFile.txt")))
+            using (StreamReader sr = new StreamReader(indexIsoCodeFilePath))
             {
                 string line;
                 string[] data;
@@ -158,8 +165,7 @@ namespace BuscaBinariaArquivo
                 while ((line = sr.ReadLine()) != null)
                 {
                     data = line.Split(';');
-                    Encoding ascii = Encoding.UTF8;
-                    using (FileStream fs = new FileStream(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "DataFile.csv"), FileMode.Open, FileAccess.Read))
+                    using (FileStream fs = new FileStream(dataFilePath, FileMode.Open, FileAccess.Read))
                     {
                         item = new ItemFileHipotese();
                         dataLine = new StringBuilder();
@@ -168,8 +174,8 @@ namespace BuscaBinariaArquivo
                         {
                             fs.Seek(i, SeekOrigin.Begin);
                             fs.Read(caracter, 0, 1);
-                            ascii.GetChars(caracter, 0, 1, encodedCaracter, 0); 
-                            
+                            encoding.GetChars(caracter, 0, 1, encodedCaracter, 0);
+
                             if (encodedCaracter[0] == '\n')
                             {
                                 break;
@@ -177,11 +183,11 @@ namespace BuscaBinariaArquivo
                         }
 
                         int columns = 1;
-                        for (long j = i+1; j <= Convert.ToInt64(data[2]); j++)
+                        for (long j = i + 1; j <= Convert.ToInt64(data[2]); j++)
                         {
                             fs.Seek(j, SeekOrigin.Begin);
                             fs.Read(caracter, 0, 1);
-                            ascii.GetChars(caracter, 0, 1, encodedCaracter, 0);
+                            encoding.GetChars(caracter, 0, 1, encodedCaracter, 0);
 
                             if (encodedCaracter[0] == ';' || encodedCaracter[0] == '\r')
                             {
@@ -255,7 +261,32 @@ namespace BuscaBinariaArquivo
             //}
         }
 
-        public static String BuscarPorData(Dictionary<String, List<long>> hash)
+        #endregion
+
+        #region 2.3
+
+        public static void GenerateHashStructure(string dataFilePath, Encoding encoding)
+        {
+            //item 2.3 (indice de memória com hash pela data)
+            Dictionary<string, List<long>> hash = new Dictionary<string, List<long>>();
+            long bytesCounter = 0;
+            string line;
+            using (StreamReader sr = new StreamReader(dataFilePath))
+            {
+                while ((line = sr.ReadLine()) != null)
+                {
+                    string date = line.Split(';')[2];
+                    if (!hash.ContainsKey(date))
+                    {
+                        hash.Add(date, new List<long>());
+                    }
+                    hash.GetValueOrDefault(date).Add(bytesCounter);
+                    bytesCounter += encoding.GetByteCount(line) + 2;
+                }
+            }
+        }
+
+        public static string BuscarPorData(Dictionary<string, List<long>> hash, Encoding encoding)
         {
             string data = "2020-12-12";
             byte[] caracter = new byte[1];
@@ -269,7 +300,7 @@ namespace BuscaBinariaArquivo
                 {
                     fs.Seek(i, SeekOrigin.Begin);
                     fs.Read(caracter, 0, 1);
-                    Encoding.UTF8.GetChars(caracter, 0, 1, encodedCaracter, 0);
+                    encoding.GetChars(caracter, 0, 1, encodedCaracter, 0);
                     if (encodedCaracter[0] == '\n')
                     {
                         break;
@@ -283,14 +314,46 @@ namespace BuscaBinariaArquivo
             return registro;
         }
 
-        public static void BuscarPorId()
-        {//utilizando arquivo de índices por id - 2.1
-            var id = 60816;
-            //consultar no arquivo de indice por ID qual o índice daquele ID
-            //ir no arquivo e buscar toda aquela linha (do inicio do índice até achar o \n)
+        #endregion
+
+        #region 2.4
+
+        public static void GenerateBTree(string dataFilePath, Encoding encoding)
+        {
+            //item 2.3 (indice de memória com árvore binária pelo continente)
+            ArvoreBinaria arvore = new ArvoreBinaria();
+            long bytesCounter = 0;
+            string line;
+            string continenteAtual = null;
+            long bytesFinal = 0;
+            using (StreamReader sr = new StreamReader(dataFilePath))
+            {
+                while ((line = sr.ReadLine()) != null)
+                {
+                    string continente = line.Split(';')[3];
+
+                    if (continente != continenteAtual)
+                    {
+                        if (arvore.Buscar(continenteAtual) != null)
+                        {
+                            NoArvore nodo = arvore.Buscar(continenteAtual);
+                            ObjetoParaArvore objetoParaArvore = (ObjetoParaArvore)nodo.Dados();
+                            objetoParaArvore.enderecoFinal = bytesFinal;
+                        }
+                    }
+
+                    if (arvore.Buscar(continente) == null)
+                    {
+                        arvore.Inserir(new ObjetoParaArvore(continente, bytesCounter));
+                        continenteAtual = continente;
+                    }
+                    bytesFinal = bytesCounter;
+                    bytesCounter += encoding.GetByteCount(line) + 2;
+                }
+            }
         }
 
-        public static String BuscarPorContinente(ArvoreBinaria arvore, int numeroRegistro)
+        public static string BuscarPorContinente(ArvoreBinaria arvore, int numeroRegistro, Encoding encoding)
         {
             string continente = "Europe";
             string registro = "";
@@ -299,35 +362,30 @@ namespace BuscaBinariaArquivo
             ObjetoParaArvore objetoParaArvore = (ObjetoParaArvore)nodo.Dados();
             using (FileStream fs = new FileStream(dataFilePath, FileMode.Open, FileAccess.Read))
             {
-                 BuscaRegistroRecursivo(numeroRegistro, objetoParaArvore.enderecoInicial, objetoParaArvore.enderecoFinal, fs, Encoding.UTF8, null);
+                BuscaRegistroRecursivo(numeroRegistro, objetoParaArvore.enderecoInicial, objetoParaArvore.enderecoFinal, fs, encoding, null);
             }
             return registro;
         }
 
+        #endregion
 
-        public static void BuscaRegistro(int numeroRegistro, string path)
-        {
-            Console.WriteLine($"Buscando registro numero {numeroRegistro}:");
-            Encoding ascii = Encoding.UTF8;
-            using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read))
-            {
-                BuscaRegistroRecursivo(numeroRegistro, 0, fs.Length, fs, ascii, null);
-            }
-        }
+        #region Busca Recursiva
 
-        public static void BuscaRegistroRecursivo(int numeroRegistro, long limiteSup, long limiteInf, FileStream fs, Encoding ascii, string ultimoCodigoEncontrado)
+        public static string BuscaRegistroRecursivo(int numeroRegistro, long limiteSup, long limiteInf, FileStream fs, Encoding encoding, string ultimoCodigoEncontrado)
         {
+            var endereco = string.Empty;
             long meio = limiteSup + ((limiteInf - limiteSup) / 2);
             byte[] caracter = new byte[1];
             char[] encodedCaracter = new char[1];
             string registro = string.Empty;
             string[] registroSplit;
 
+            //esse laço volta ao início da linha após achar a linha do meio
             for (long i = meio; i >= 0 && i <= limiteInf; i--)
             {
                 fs.Seek(i, SeekOrigin.Begin);
                 fs.Read(caracter, 0, 1);
-                ascii.GetChars(caracter, 0, 1, encodedCaracter, 0);
+                encoding.GetChars(caracter, 0, 1, encodedCaracter, 0);
                 if (encodedCaracter[0] == '\n')
                 {
                     meio = i + 1;
@@ -345,11 +403,12 @@ namespace BuscaBinariaArquivo
                 }
             }
 
+            //esse laço lê a partir da linha do meio
             for (long i = meio; i >= 0 && i <= limiteInf; i++)
             {
                 fs.Seek(i, SeekOrigin.Begin);
                 fs.Read(caracter, 0, 1);
-                ascii.GetChars(caracter, 0, 1, encodedCaracter, 0);
+                encoding.GetChars(caracter, 0, 1, encodedCaracter, 0);
                 if (encodedCaracter[0] == '\n')
                 {
                     break;
@@ -359,37 +418,59 @@ namespace BuscaBinariaArquivo
                     registro = registro + encodedCaracter[0];
                 }
             }
-            registroSplit = registro.Split(' ');
+            registroSplit = registro.Split(';');
 
             if (ultimoCodigoEncontrado == registroSplit[0])
             {
                 Console.WriteLine("Código não encontrado!");
-                Environment.Exit(0);
+                return string.Empty;
             }
-            else
+            else if (Convert.ToInt32(registroSplit[0]) == numeroRegistro)
             {
+                //ao invés de imprimir, retornar o endereço
                 Console.WriteLine(registro);
+                return registroSplit[1];
             }
 
-            if (Convert.ToInt64(registroSplit[0]) == numeroRegistro)
+            else if (Convert.ToInt64(registroSplit[0]) == numeroRegistro)
             {
                 Environment.Exit(0);
             }
             else if (meio == 0)
             {
                 Console.WriteLine("Código não encontrado!");
-                Environment.Exit(0);
+                return string.Empty;
             }
             else if (numeroRegistro > Convert.ToInt64(registroSplit[0]))
             {
                 //parte de baixo
-                BuscaRegistroRecursivo(numeroRegistro, meio, limiteInf, fs, ascii, registroSplit[0]);
+                endereco = BuscaRegistroRecursivo(numeroRegistro, meio, limiteInf, fs, encoding, registroSplit[0]);
             }
             else
             {
                 //parte de cima
-                BuscaRegistroRecursivo(numeroRegistro, limiteSup, meio, fs, ascii, registroSplit[0]);
+                endereco = BuscaRegistroRecursivo(numeroRegistro, limiteSup, meio, fs, encoding, registroSplit[0]);
+            }
+            return endereco;
+        }
+
+        #endregion
+
+        #region Mostrar Todos
+
+        public static void MostrarTodos(string dataFilePath)
+        {
+            using (StreamReader sr = new StreamReader(dataFilePath))
+            {
+                string line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    Console.WriteLine(line);
+                }
             }
         }
+
+        #endregion
+
     }
 }

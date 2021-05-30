@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Pedro\\OneDrive\\Documentos\\git\\cic_ucs\\2021-2\\Algoritmo e Estrutura de Dados 2\\trabalhogit\\trab_estrutura_2_dados\\src\\BuscaBinariaArquivo\\BuscaBinariaArquivo\\BuscaBinariaArquivo.csproj": {}
+    "C:\\Users\\User\\Source\\Repos\\trab_estrutura_2_dados\\src\\BuscaBinariaArquivo\\BuscaBinariaArquivo\\BuscaBinariaArquivo.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Pedro\\OneDrive\\Documentos\\git\\cic_ucs\\2021-2\\Algoritmo e Estrutura de Dados 2\\trabalhogit\\trab_estrutura_2_dados\\src\\BuscaBinariaArquivo\\BuscaBinariaArquivo\\BuscaBinariaArquivo.csproj": {
+    "C:\\Users\\User\\Source\\Repos\\trab_estrutura_2_dados\\src\\BuscaBinariaArquivo\\BuscaBinariaArquivo\\BuscaBinariaArquivo.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Pedro\\OneDrive\\Documentos\\git\\cic_ucs\\2021-2\\Algoritmo e Estrutura de Dados 2\\trabalhogit\\trab_estrutura_2_dados\\src\\BuscaBinariaArquivo\\BuscaBinariaArquivo\\BuscaBinariaArquivo.csproj",
+        "projectUniqueName": "C:\\Users\\User\\Source\\Repos\\trab_estrutura_2_dados\\src\\BuscaBinariaArquivo\\BuscaBinariaArquivo\\BuscaBinariaArquivo.csproj",
         "projectName": "BuscaBinariaArquivo",
-        "projectPath": "C:\\Users\\Pedro\\OneDrive\\Documentos\\git\\cic_ucs\\2021-2\\Algoritmo e Estrutura de Dados 2\\trabalhogit\\trab_estrutura_2_dados\\src\\BuscaBinariaArquivo\\BuscaBinariaArquivo\\BuscaBinariaArquivo.csproj",
-        "packagesPath": "C:\\Users\\Pedro\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Pedro\\OneDrive\\Documentos\\git\\cic_ucs\\2021-2\\Algoritmo e Estrutura de Dados 2\\trabalhogit\\trab_estrutura_2_dados\\src\\BuscaBinariaArquivo\\BuscaBinariaArquivo\\obj\\",
+        "projectPath": "C:\\Users\\User\\Source\\Repos\\trab_estrutura_2_dados\\src\\BuscaBinariaArquivo\\BuscaBinariaArquivo\\BuscaBinariaArquivo.csproj",
+        "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\User\\Source\\Repos\\trab_estrutura_2_dados\\src\\BuscaBinariaArquivo\\BuscaBinariaArquivo\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Pedro\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
